@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>emailjs.init('yZ50uOXy1Yvznbe5c');</script>
 <style>
   :root {
     --rose:    #f9a8c9;
@@ -528,6 +530,7 @@ function handleNoBtnPress(e) {
     dodgeBtn();
   } else {
     dodgeActive = false;
+    sendResponse('She said no 🥲');
     noBtn.style.transition    = 'opacity 0.5s ease, transform 0.3s ease';
     noBtn.style.opacity       = '0.35';
     noBtn.style.transform     = 'translate(0px, 0px)';
@@ -553,9 +556,20 @@ noBtn.addEventListener('click', (e) => {
 });
 
 /* ══════════════════════════════════
+   EMAILJS — track her response
+═══════════════════════════════════ */
+function sendResponse(response) {
+  emailjs.send('service_vd0d0i7', 'template_4gimypa', {
+    response: response,
+    time: new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' }),
+  }).catch(() => {}); // silent fail — don't show errors to her
+}
+
+/* ══════════════════════════════════
    YES → CONFETTI CELEBRATION
 ═══════════════════════════════════ */
 function handleYes() {
+  sendResponse('She said YES 🥹🌸');
   goTo('scene4');
   setTimeout(launchConfetti, 300);
 }
