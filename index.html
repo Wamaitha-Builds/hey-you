@@ -198,17 +198,51 @@
 
   /* ── DATE BADGE ── */
   .date-badge {
-    display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; gap: 12px;
     background: linear-gradient(135deg, rgba(249,168,201,0.3), rgba(216,180,254,0.3));
     border: 1px solid rgba(244,114,168,0.3);
     border-radius: 50px;
-    padding: 8px 20px;
+    padding: 8px 20px 8px 8px;
     font-size: 13px; font-weight: 500;
     color: #9d3a6a;
     margin-bottom: 24px;
     letter-spacing: 0.3px;
   }
-  .date-badge span { font-size: 16px; }
+
+  /* tiny calendar widget */
+  .cal-icon {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(200,80,130,0.2);
+    flex-shrink: 0;
+  }
+  .cal-icon .cal-top {
+    width: 100%;
+    background: linear-gradient(135deg, #f472a8, #c084fc);
+    color: white;
+    font-size: 7px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 0;
+    text-align: center;
+  }
+  .cal-icon .cal-day {
+    width: 100%;
+    background: white;
+    color: #c0527a;
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    padding: 2px 0;
+    line-height: 1;
+  }
 
   /* ── FINAL SCREEN ── */
   #scene5 .card { padding-bottom: 56px; }
@@ -328,7 +362,13 @@
     <p class="eyebrow">so here's what I'm thinking</p>
     <h1>Movie night<br/><em>with me?</em></h1>
     <div class="divider"></div>
-    <div class="date-badge"><span>📅</span> March 14 &nbsp;·&nbsp; 6:00 PM</div>
+    <div class="date-badge">
+      <div class="cal-icon">
+        <div class="cal-top">Mar</div>
+        <div class="cal-day">14</div>
+      </div>
+      March 14 &nbsp;·&nbsp; 6:00 PM
+    </div>
     <p class="body-text">Chill. Cozy. Just us.</p>
     <div class="answer-row">
       <button class="btn-yes" onclick="handleYes()">Yes, obviously 🥹</button>
@@ -465,7 +505,7 @@ function dodgeBtn() {
   setTimeout(() => { isDodging = false; }, 250);
 }
 
-// Mouse hover dodge
+// Mouse hover dodge — desktop only
 document.addEventListener('mousemove', (e) => {
   if (!dodgeActive || !scene3.classList.contains('active')) return;
   const bRect = noBtn.getBoundingClientRect();
@@ -474,16 +514,11 @@ document.addEventListener('mousemove', (e) => {
   if (Math.hypot(e.clientX - cx, e.clientY - cy) < 72) dodgeBtn();
 });
 
-// Touch dodge — fires before tap registers
-noBtn.addEventListener('touchstart', (e) => {
+// Shared handler — runs the message + dodge logic
+function handleNoBtnPress(e) {
   if (!dodgeActive) return;
-  e.preventDefault(); // stop the tap from firing immediately
-  dodgeBtn();
-}, { passive: false });
+  if (e && e.cancelable) e.preventDefault();
 
-// Click handler (covers both mouse click after dodge and mobile fallback)
-noBtn.addEventListener('click', () => {
-  if (!dodgeActive) return;
   noClicks++;
   const msg = document.getElementById('noMessage');
 
@@ -493,11 +528,27 @@ noBtn.addEventListener('click', () => {
     dodgeBtn();
   } else {
     dodgeActive = false;
-    noBtn.style.transition = 'opacity 0.5s ease';
-    noBtn.style.opacity    = '0.35';
+    noBtn.style.transition    = 'opacity 0.5s ease, transform 0.3s ease';
+    noBtn.style.opacity       = '0.35';
+    noBtn.style.transform     = 'translate(0px, 0px)';
     noBtn.style.pointerEvents = 'none';
     msg.textContent = "Such a bummer… but next time 🥲";
     msg.classList.add('show');
+  }
+}
+
+// Mobile — touchstart handles everything so click doesn't need to fire
+noBtn.addEventListener('touchstart', (e) => {
+  handleNoBtnPress(e);
+}, { passive: false });
+
+// Desktop — click handles it (mousemove already dodged, this shows the message)
+noBtn.addEventListener('click', (e) => {
+  // On touch devices touchstart already ran, skip click to avoid double trigger
+  if (e && e.sourceCapabilities && !e.sourceCapabilities.firesTouchEvents) {
+    handleNoBtnPress(null);
+  } else if (!('ontouchstart' in window)) {
+    handleNoBtnPress(null);
   }
 });
 
